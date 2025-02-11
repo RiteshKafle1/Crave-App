@@ -36,17 +36,21 @@ const addFood = async (req, res, next) => {
     const { name, description, price, category } = req.body;
     // console.log(typeof(name,price));
     const foodImage = req.file;
+    console.log(foodImage);
     if (!foodImage) {
       return next({ statusCode: 400, message: "No Image Found" });
     }
     let cloud = await cloudinary.uploader.upload(foodImage.path, {
       folder: "Food-image",
     });
+    console.log(cloud);
+
     const newFoodItem = new foodModel({
       name,
       description,
       price: Number(price),
       image: cloud.secure_url,
+      publicId: cloud.public_id,
       category,
     });
     await newFoodItem.save();
@@ -74,6 +78,9 @@ const removeFood = async (req, res, next) => {
     if (!deleteItem) {
       return next({ statusCode: 400, message: " OOPS :) Couldnot find Item" });
     }
+    await cloudinary.uploader.destroy(deleteItem.publicId);
+
+    await deleteItem.deleteOne();
     return res.status(200).json({ error: false, message: "item deleted" });
   } catch (error) {
     console.log("Error in removing food");
