@@ -17,14 +17,14 @@ const foodSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  publicId:{
-    type:String,
-    default:"",
+  publicId: {
+    type: String,
+    default: "",
   },
   category: {
     type: String,
     required: true,
   },
 });
-const foodModel = mongoose.model.food || mongoose.model("Food", foodSchema);
+const foodModel = mongoose.model("Food", foodSchema);
 module.exports = foodModel;

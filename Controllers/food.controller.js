@@ -87,4 +87,39 @@ const removeFood = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { addFood, listFood, removeFood };
+const updateFood = async (req, res, next) => {
+  const { error } = foodSchema.validate(req.body);
+  if (error) {
+    return next({ statusCode: 404, message: error.message });
+  }
+  const foodImage = req.file;
+  //console.log(foodImage);
+  if (!foodImage) {
+    return next({ statusCode: 400, message: "No Image Found" });
+  }
+  try {
+    const { name, description, price, category } = req.body;
+    let cloud = await cloudinary.uploader.upload(foodImage.path, {
+      folder: "Food-image",
+    });
+    const item = await foodModel.findOne({ _id: req.params.id });
+    //console.log(item);
+    if (!item) {
+      return next({ statusCode: 400, message: "couldnot find your req" });
+    }
+    item.name = name || item.name;
+    item.description = description || item.description;
+    item.price = Number(price) || item.price;
+    item.category = category || item.category;
+    item.image = cloud.secure_url || item.image;
+    item.publicId = cloud.public_id || item.publicId;
+    await item.save();
+    return res
+      .status(200)
+      .json({ error: false, message: "Item Updated", data: item });
+  } catch (error) {
+    console.log("Error in updating item");
+    next(error);
+  }
+};
+module.exports = { addFood, listFood, removeFood, updateFood };
