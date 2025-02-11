@@ -30,10 +30,11 @@ const foodSchema = Joi.object({
 const addFood = async (req, res, next) => {
   const { error } = foodSchema.validate(req.body);
   if (error) {
-    return next({ statusCode: 404, message: "" });
+    return next({ statusCode: 404, message: error.message });
   }
   try {
     const { name, description, price, category } = req.body;
+    // console.log(typeof(name,price));
     const foodImage = req.file;
     if (!foodImage) {
       return next({ statusCode: 400, message: "No Image Found" });
@@ -41,19 +42,42 @@ const addFood = async (req, res, next) => {
     let cloud = await cloudinary.uploader.upload(foodImage.path, {
       folder: "Food-image",
     });
-
     const newFoodItem = new foodModel({
       name,
       description,
-      price,
+      price: Number(price),
       image: cloud.secure_url,
       category,
     });
     await newFoodItem.save();
-    return res.status(200).json({error:false,message:'Item Added'});
+    return res.status(201).json({ error: false, message: "Item Added" });
   } catch (error) {
     console.log("Error in creating foodItems");
     next(error);
   }
 };
-module.exports = { addFood };
+const listFood = async (req, res, next) => {
+  try {
+    const foodItem = await foodModel.find({}).sort({ name: 1 });
+    if (foodItem.length === 0) {
+      return next({ statusCode: 500, message: "No Item Found" });
+    }
+    return res.status(200).json({ error: false, foodItem });
+  } catch (error) {
+    console.log("Error in listing food");
+    next(error);
+  }
+};
+const removeFood = async (req, res, next) => {
+  try {
+    const deleteItem = await foodModel.findById(req.body.id);
+    if (!deleteItem) {
+      return next({ statusCode: 400, message: " OOPS :) Couldnot find Item" });
+    }
+    return res.status(200).json({ error: false, message: "item deleted" });
+  } catch (error) {
+    console.log("Error in removing food");
+    next(error);
+  }
+};
+module.exports = { addFood, listFood, removeFood };

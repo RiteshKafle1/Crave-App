@@ -9,6 +9,7 @@ const foodRouter = require("./Routes/food.route");
 
 // middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use("/api/food", foodRouter);
 
 app.use((err, req, res, next) => {
